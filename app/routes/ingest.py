@@ -7,21 +7,13 @@ from typing import List, Dict, Any
 
 from app.database import get_db
 from app import ml_pipeline
+from app.notifications import send_spoilage_notification
 from app.predictor import predict_spoilage_local
 from app.config import settings
 
 router = APIRouter()
 
-def send_notification(device_id: str, label: str, hours: float, item_id: int, spoilage_score: float):
-    """
-    STUB: Placeholder for Firebase push notifications.
-    """
-    print("\n" + "="*50)
-    print(f"PUSH NOTIFICATION SENT TO DEVICE: {device_id}")
-    print(f"ALERT: Food item '{label}' (ID: {item_id}) is spoiling!")
-    print(f"Estimated time remaining: {hours:.1f} hours")
-    print(f"Current Max Spoilage Score: {spoilage_score:.2f}")
-    print("="*50 + "\n")
+# Notification logic handled by app.notifications
 
 @router.post("")
 async def ingest_image(
@@ -120,10 +112,11 @@ async def ingest_image(
     current_max_spoilage = max(d["spoilage_score"] for d in sticker_readings.values())
     
     if prediction_result["hours_remaining"] < 24:
-        send_notification(
+        await send_spoilage_notification(
             device_id, label, 
             prediction_result["hours_remaining"], 
-            item_id, current_max_spoilage
+            item_id, current_max_spoilage,
+            db
         )
 
     # 8. Return response
