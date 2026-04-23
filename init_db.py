@@ -23,7 +23,7 @@ async def main():
         # 2. food_items table
         await db.execute("""
             CREATE TABLE IF NOT EXISTS food_items (
-                item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_id TEXT PRIMARY KEY,
                 device_id TEXT,
                 label TEXT,
                 food_category TEXT CHECK(food_category IN ('raw_meat', 'dairy', 'leafy', 'cooked')),
@@ -37,7 +37,7 @@ async def main():
         await db.execute("""
             CREATE TABLE IF NOT EXISTS color_readings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                item_id INTEGER,
+                item_id TEXT,
                 sticker_type TEXT,
                 timestamp DATETIME,
                 R REAL,
@@ -58,7 +58,7 @@ async def main():
         await db.execute("""
             CREATE TABLE IF NOT EXISTS predictions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                item_id INTEGER,
+                item_id TEXT,
                 predicted_at DATETIME,
                 predicted_spoil_by DATETIME,
                 confidence REAL,
@@ -71,7 +71,7 @@ async def main():
         await db.execute("""
             CREATE TABLE IF NOT EXISTS feedback (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                item_id INTEGER,
+                item_id TEXT,
                 submitted_at DATETIME,
                 actual_spoil_at DATETIME,
                 predicted_spoil_at DATETIME,

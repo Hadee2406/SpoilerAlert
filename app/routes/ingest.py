@@ -7,6 +7,8 @@ from typing import List, Dict, Any
 
 from app.database import get_db
 from app import ml_pipeline
+from app.predictor import predict_spoilage_local
+from app.config import settings
 
 router = APIRouter()
 
@@ -91,7 +93,10 @@ async def ingest_image(
             })
 
     # 5. Predict spoilage
-    prediction_result = ml_pipeline.predict_spoilage(history, food_category)
+    if settings.IS_ML_STUB:
+        prediction_result = predict_spoilage_local(history, food_category)
+    else:
+        prediction_result = ml_pipeline.predict_spoilage(history, food_category)
 
     # 6. Insert prediction into database
     now_str = datetime.now().isoformat()

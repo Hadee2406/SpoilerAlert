@@ -4,6 +4,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     FIREBASE_CREDENTIALS_PATH: str
     BASE_URL: str
+    IS_ML_STUB: bool = True
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
