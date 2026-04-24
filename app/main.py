@@ -1,13 +1,31 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routes import ingest, devices, items, feedback
+from init_db import main as init_db_main
 
 app = FastAPI(title="Spoiler Alert Backend")
 
-app.include_router(ingest.router, prefix="/ingest", tags=["ingest"])
-app.include_router(devices.router, prefix="/devices", tags=["devices"])
-app.include_router(items.router, prefix="/items", tags=["items"])
-app.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
+# Enable CORS for demo purposes
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/health")
-async def health_check():
+# Include routers - paths are explicit in the route files
+app.include_router(ingest.router, tags=["ingest"])
+app.include_router(devices.router, tags=["devices"])
+app.include_router(items.router, tags=["items"])
+app.include_router(feedback.router, tags=["feedback"])
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize the database when the server starts."""
+    await init_db_main()
+
+@app.get("/")
+async def root():
+    """Base health check."""
     return {"status": "ok"}

@@ -40,3 +40,15 @@ async def register_fcm_token(data: FCMTokenUpdate, db: aiosqlite.Connection = De
     )
     await db.commit()
     return {"status": "updated"}
+
+@router.get("/devices")
+async def _get_devices(db: aiosqlite.Connection = Depends(get_db)):
+    async with db.execute("SELECT * FROM devices") as cursor:
+        devices = await cursor.fetchall()
+    result = []
+    for device in devices:
+        device_dict = dict(device)
+        result.append(device_dict)
+    
+    
+    return result

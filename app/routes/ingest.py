@@ -15,7 +15,7 @@ router = APIRouter()
 
 # Notification logic handled by app.notifications
 
-@router.post("")
+@router.post("/ingest")
 async def ingest_image(
     device_id: str = Form(...),
     timestamp: str = Form(...),

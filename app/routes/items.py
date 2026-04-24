@@ -15,7 +15,7 @@ class AddFoodItem(BaseModel):
 
 VALID_CATEGORIES = ["raw_meat", "dairy", "leafy", "cooked"]
 
-@router.post("/add-food-item")
+@router.post("/items/add-food-item")
 async def add_food_item(data: AddFoodItem, db: aiosqlite.Connection = Depends(get_db)):
     if data.food_category not in VALID_CATEGORIES:
         raise HTTPException(
@@ -37,7 +37,7 @@ async def add_food_item(data: AddFoodItem, db: aiosqlite.Connection = Depends(ge
     
     return {"status": "created", "item_id": item_id}
 
-@router.get("/{device_id}")
+@router.get("/items/{device_id}")
 async def get_items(device_id: str, db: aiosqlite.Connection = Depends(get_db)):
     # 1. Fetch active items for the device
     async with db.execute(

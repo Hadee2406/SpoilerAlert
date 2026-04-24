@@ -10,7 +10,7 @@ class FeedbackData(BaseModel):
     item_id: str
     actual_spoil_at: str
 
-@router.post("")
+@router.post("/feedback")
 async def record_feedback(data: FeedbackData, db: aiosqlite.Connection = Depends(get_db)):
     # 1. Look up latest prediction for this item
     async with db.execute(
