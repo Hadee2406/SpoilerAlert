@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import ingest, devices, items, feedback
+from app.routes import ingest, devices, items, feedback, api
 from init_db import main as init_db_main
 
 app = FastAPI(title="Spoiler Alert Backend")
@@ -19,6 +19,7 @@ app.include_router(ingest.router, tags=["ingest"])
 app.include_router(devices.router, tags=["devices"])
 app.include_router(items.router, tags=["items"])
 app.include_router(feedback.router, tags=["feedback"])
+app.include_router(api.router)
 
 @app.on_event("startup")
 async def startup_event():
