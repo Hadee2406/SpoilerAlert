@@ -2,7 +2,43 @@ from fastapi import APIRouter
 from datetime import datetime
 import random
 
+user_settings = {
+    "alert_level": "Spoiling",
+    "alert_timing": "1 day before",
+    "alert_frequency": "Daily",
+    "update_frequency_hours": 6
+}
+
 router = APIRouter(prefix="/api", tags=["api"])
+latest_ml_data = None
+history = []
+
+@router.get("/esp-config")
+def get_esp_config():
+    global user_settings
+
+    return {
+        "capture_interval_hours": int(user_settings["update_frequency_hours"])
+    }
+
+@router.get("/settings")
+def get_settings():
+    global user_settings
+    return user_settings
+
+@router.put("/settings")
+def update_settings(data: dict):
+    global user_settings
+
+    user_settings["alert_level"] = data.get("alert_level", user_settings["alert_level"])
+    user_settings["alert_timing"] = data.get("alert_timing", user_settings["alert_timing"])
+    user_settings["alert_frequency"] = data.get("alert_frequency", user_settings["alert_frequency"])
+    user_settings["update_frequency_hours"] = data.get(
+        "update_frequency_hours",
+        user_settings["update_frequency_hours"]
+    )
+
+    return user_settings
 
 
 @router.get("/status")
@@ -18,16 +54,39 @@ def get_status():
 
 @router.get("/trend")
 def get_trend():
-    if history:
-        return {"points": history}
+    global history
+
+    # 🔹 Ensure history is always a list
+    if not isinstance(history, list):
+        history = []
+
+    # 🔹 If empty, return safe empty structure
+    if len(history) == 0:
+        return {
+            "points": []
+        }
+
+    # 🔹 Keep only last 7 entries (weekly view)
+    trimmed = history[-7:]
+
+    # 🔹 Ensure each point has correct format
+    safe_points = []
+    for point in trimmed:
+        try:
+            safe_points.append({
+                "day": str(point.get("day", "")),
+                "value": int(point.get("value", 0))
+            })
+        except Exception:
+            # fallback in case of bad data
+            safe_points.append({
+                "day": "N/A",
+                "value": 0
+            })
 
     return {
-        "points": [
-            {"day": "Mon", "value": 1},
-            {"day": "Tue", "value": 2},
-        ]
+        "points": safe_points
     }
-
 
 @router.get("/notifications")
 def get_notifications():
@@ -57,7 +116,7 @@ def update_from_ml(data: dict):
 
     hours_remaining = data.get("hours_remaining", 0)
 
-    # Apply your rule
+    # 🔹 Determine status
     if hours_remaining > 24:
         status = "Fresh"
         value = 0
@@ -68,18 +127,19 @@ def update_from_ml(data: dict):
         status = "Spoiled"
         value = 4
 
+    # 🔹 Update latest status
     latest_ml_data = {
         "status": status,
         "confidence": data.get("confidence", 0.0),
         "timestamp": str(datetime.now())
     }
 
-    # Save for graph (last 7 points)
+    # 🔹 Update history
     history.append({
         "day": datetime.now().strftime("%a"),
         "value": value
     })
 
-    history = history[-7:]  # keep last 7
+    history = history[-7:]  # keep last 7 points
 
     return {"message": "ML data updated"}
